@@ -14,7 +14,11 @@ exports.auth = function(request, response) {
       const sendResp = (err, success) => {
         if (err || !success) return next(); //404
         if (success) {
-          response.json( { username, clientData: user, serverData: {} } );
+          response.json({
+              username,
+              clientData: user,
+              serverData: { uid: user.uid, role: user.role }
+          });
         }
       }
       user.comparePassword(pw, sendResp);
