@@ -11,7 +11,8 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.16.1",
-    "deepstream.io-client-js": "latest",
+    "underscore": "latest",
+    "deepstream.io-client-js": "git://github.com/deepstreamIO/deepstream.io-client-js.git",
     "deepstream.io-storage-mongodb": "git://github.com/foxxintheboxx/deepstream.io-storage-mongodb.git#query",
     "express": "^4.13.4"
   }
