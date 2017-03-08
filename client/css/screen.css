@@ -112,6 +112,10 @@ span.response{
 	background-color: #dddddd;
 }
 
+.object{
+margin: 2px;
+}
+
 @media screen and (max-width: 900px) {
 	.half{
 		width: 100%;
