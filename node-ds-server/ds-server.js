@@ -46,7 +46,7 @@ client.rpc.provide( 'pickup-coin', ( data, repsonse ) => {
 var lists = {};
 
 const userLocationDidChange = (uid) => {
-  const userLocation = client.record.getRecord( 'location/' + uid );
+  const userLocation = client.record.getRecord( 'userlocation/' + uid );
   userLocation.whenReady( record => {
     const data = record.get()
     if ( data.lng && data.lat ) {
