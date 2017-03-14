@@ -52,6 +52,7 @@ const userLocationDidChange = (uid) => {
     if ( data.lng && data.lat ) {
       // change to subscribe only to path or make other parts of record unwritable
       record.subscribe( (data) => {
+        console.log(data)
         const lat = data.lat;
         const lng = data.lng;
         const collection = 'coins';
@@ -82,15 +83,19 @@ const userLocationDidChange = (uid) => {
 
 // https://github.com/deepstreamIO/deepstream.io-client-js/issues/306
 client.record.listen( 'nearuser/.*', ( match, isSubscribed, response ) => {
+  let updateParams = {}
+  updateParams[uid] = true
   if (isSubscribed && typeof lists[ match ] === 'undefined') {
     response.accept();
     const uid = match.split('/')[1];
+    db.update( 'servers', { uid }, { $set : updateParams }, null, null )
     userLocationDidChange(uid);
   } else {
     // stop publishing data
     console.log('unsubscribed');
     if ( lists[ match ] ) {
       console.log('deleting ' + match)
+      db.update( 'servers', { uid }, { $unset : updateParams }, null, null )
       lists[ match ].discard()
       delete lists[ match ]
     }
@@ -100,5 +105,14 @@ client.record.listen( 'nearuser/.*', ( match, isSubscribed, response ) => {
 client.on('error', (error, event, topic) => {
   console.log(error, event, topic)
 })
+
+client.setup = (uid) => {
+  db.findOne( 'servers', { uid }, ( err, serverData ) => {
+    delete server.uid
+    _.keys( serverData, (userUid) => {
+      userLocationDidChange(uid)
+    });
+  }
+}
 
 module.exports = client;
