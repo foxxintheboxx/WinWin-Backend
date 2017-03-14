@@ -18,7 +18,7 @@ client.rpc.provide( 'pickup-coin', ( data, repsonse ) => {
     const coinUid = data.coin
     const userUid = data.uid
     const coinsNearUser = client.record.getRecord( 'nearuser/' + userUid )
-    const coin = client.record.getRecord( 'object/complete/' + coinUid )
+    const coin = client.record.getRecord( 'coins/' + coinUid )
     coinsNearUser.whenReady( r => {
       const data = r.get()
       if (data[coidUid]) {
@@ -27,8 +27,10 @@ client.rpc.provide( 'pickup-coin', ( data, repsonse ) => {
           if (!c.value) {
             c.delete() // Get record will have created the coin. Lets delete it.
             response.send( { error: 'Coin doesnt exist!' } )
-          } if (!coinData.owner) {
+          } else if (!coinData.owner) {
+            const userCriteria = { uid: uiderUid }            const value =
             c.set('owner', userUid)
+            db.update( 'user', userCriteria, { $set : }, { upsert: true }, null )
             response.send( { success: 'You picked up a $' + coinData.value + ' coin!' })
             coin.discard()
           } else {
@@ -51,8 +53,8 @@ const userLocationDidChange = (uid) => {
     const data = record.get()
     if ( data.lng && data.lat ) {
       // change to subscribe only to path or make other parts of record unwritable
+      console.log("subscribed to " + uid);
       record.subscribe( (data) => {
-        console.log(data)
         const lat = data.lat;
         const lng = data.lng;
         const collection = 'coins';
@@ -83,20 +85,21 @@ const userLocationDidChange = (uid) => {
 
 // https://github.com/deepstreamIO/deepstream.io-client-js/issues/306
 client.record.listen( 'nearuser/.*', ( match, isSubscribed, response ) => {
+  const uid = match.split('/')[1];
   let updateParams = {}
   updateParams[uid] = true
+  const serverId = { uid: client.uid }
   if (isSubscribed && typeof lists[ match ] === 'undefined') {
     response.accept();
-    const uid = match.split('/')[1];
-    db.update( 'servers', { uid }, { $set : updateParams }, null, null )
+    db.update( 'servers', serverId, { $set : updateParams }, { upsert: true }, null )
     userLocationDidChange(uid);
+    lists[match] = true
   } else {
     // stop publishing data
     console.log('unsubscribed');
     if ( lists[ match ] ) {
       console.log('deleting ' + match)
-      db.update( 'servers', { uid }, { $unset : updateParams }, null, null )
-      lists[ match ].discard()
+      db.update( 'servers', serverId, { $unset : updateParams }, null, null )
       delete lists[ match ]
     }
   }
@@ -104,15 +107,18 @@ client.record.listen( 'nearuser/.*', ( match, isSubscribed, response ) => {
 
 client.on('error', (error, event, topic) => {
   console.log(error, event, topic)
-})
+});
 
 client.setup = (uid) => {
-  db.findOne( 'servers', { uid }, ( err, serverData ) => {
-    delete server.uid
+  client.uid = uid
+  const serverId = { uid: client.uid }
+  db.findOne( 'servers', serverId, ( err, serverData ) => {
+    if (serverData === null) return
+    delete serverData.uid
     _.keys( serverData, (userUid) => {
-      userLocationDidChange(uid)
+      userLocationDidChange(userUid)
     });
-  }
-}
+  });
+};
 
 module.exports = client;
