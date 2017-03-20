@@ -20,6 +20,20 @@ const UserSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
+    ds_key: {
+        type: String,
+        unique: true
+    },
+    __ds: {
+      _v : {
+        type: Number,
+        default: 0
+      }
+    },
+    account: {
+        type: Number,
+        default: 0
+    },
     countryCode: {
         type: String,
         required: true

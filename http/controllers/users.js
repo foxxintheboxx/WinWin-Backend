@@ -13,11 +13,12 @@ exports.auth = function(request, response) {
   User.findOne({ "username": username}).exec((err, user) =>  {
       const sendResp = (err, success) => {
         if (err || !success) return next(); //404
+        const role = user.role ? user.role : "user" //FIX
         if (success) {
           response.json({
               username,
               clientData: user,
-              serverData: { uid: user.uid, role: user.role }
+              serverData: { uid: user.uid, role }
           });
         }
       }
